@@ -535,27 +535,52 @@ function App() {
         }
       } catch (_) {}
 
-      // Convert ::before/::after pseudo-elements to real <span>
+      // Convert ::before/::after pseudo-elements to real elements.
+      // Use <span> (not <section>) to avoid conflicts with WeChat's native
+      // section-based container model — nested sections can confuse the editor
+      // and cause the pseudo-element's inline styles to be stripped.
       const makePseudo = (rule, position) => {
         try {
           const sel = rule.raw.replace(/::(?:before|after)/, '').trim();
           const localSel = sel.replace(/^\.article-body\s*/, '').trim() || '&';
           const els = localSel === '&' ? [clone] : Array.from(clone.querySelectorAll(localSel));
           for (const el of els) {
-            const span = document.createElement('section');
+            const span = document.createElement('span');
             span.setAttribute('data-ps', position);
             const hasDisplay = 'display' in rule.properties;
+            const hasPosition = 'position' in rule.properties;
+
+            // Ensure the parent element provides a positioning context when
+            // the pseudo-element is absolutely positioned. Without this the
+            // pseudo-element would anchor to the wrong ancestor or viewport.
+            if (rule.properties.position === 'absolute') {
+              const cur = el.style.getPropertyValue('position');
+              if (cur !== 'relative' && cur !== 'absolute') {
+                el.style.setProperty('position', 'relative');
+              }
+            }
+
+            // Base font size of the parent element — used to convert em units
+            // to px. After the root .article-body wrapper is stripped by the
+            // WeChat editor, the inheritance chain breaks and em values can
+            // resolve against the wrong base. Locking them to px prevents the
+            // pseudo-element's size from drifting (e.g. h2::before "PART 01"
+            // with font-size:0.55em becoming full-size text).
+            const parentFontSize = parseFloat(el.style.fontSize) || 16;
+
             for (const [p, v] of Object.entries(rule.properties)) {
               if (p === 'content') continue;
-              if (p === 'position' && (v === 'absolute' || v === 'relative')) {
-                if (!hasDisplay) span.style.setProperty('display', 'inline-block');
-                continue;
+              // Convert em units to px for size reliability
+              let finalV = v;
+              if (/em\b/.test(v)) {
+                finalV = v.replace(/([\d.]+)em/g, (m, n) => (parseFloat(n) * parentFontSize) + 'px');
               }
-              if (p === 'left' || p === 'right' || p === 'top' || p === 'bottom') continue;
-              span.style.setProperty(p, v);
+              span.style.setProperty(p, finalV);
             }
-            if (!hasDisplay && !('position' in rule.properties)) {
-              span.style.setProperty('display', 'inline');
+            // Default display: block when positioned (need block box for
+            // width/height to apply), inline otherwise.
+            if (!hasDisplay) {
+              span.style.setProperty('display', hasPosition ? 'block' : 'inline');
             }
             // Resolve content value (handles quoted strings + counter() functions)
             const rawContent = rule.properties.content || '';
@@ -608,9 +633,19 @@ function App() {
       if (Object.keys(rootInherited).length) {
         const descEls = clone.querySelectorAll('*');
         for (const el of descEls) {
+          const isPseudo = el.hasAttribute('data-ps');
+          // For pseudo-elements, inherit from their parent element (the element
+          // they were attached to) rather than the root container. An h2::before
+          // should inherit h2's line-height (1.45), not the root's line-height
+          // (2) — otherwise the "PART 01" label gets an oversized line box.
+          const source = isPseudo ? el.parentElement : null;
           for (const [p, v] of Object.entries(rootInherited)) {
             // Only set when the descendant has not declared this property itself
             if (!el.style.getPropertyValue(p)) {
+              if (source) {
+                const parentVal = source.style.getPropertyValue(p);
+                if (parentVal) { el.style.setProperty(p, parentVal); continue; }
+              }
               el.style.setProperty(p, v);
             }
           }
