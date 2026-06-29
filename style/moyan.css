@@ -1,0 +1,22 @@
+.article-body{background:#faf8f5;color:#2d2a26;font-family:'Noto Serif SC','Source Han Serif SC',Georgia,serif;line-height:2;font-size:16px;padding:46px 36px 54px;letter-spacing:0.03em;counter-reset:section}
+.article-body h1{font-size:26px;font-weight:700;color:#1a1815;text-align:center;margin:0 0 0.8em;padding:1.4em 0 0.5em;line-height:1.4;letter-spacing:0.05em}
+.article-body h1::before{content:'';display:block;width:2em;height:3px;background:#8c8880;margin:0 auto 0.7em;border-radius:2px}
+.article-body h1::after{content:'';display:block;width:100%;height:1px;background:linear-gradient(to right,transparent,#d4cfc6 30%,#d4cfc6 70%,transparent);margin:0.6em auto 0}
+.article-body h2{counter-increment:section;font-size:19px;font-weight:600;color:#2d2a26;margin:2em 0 0.5em;line-height:1.5;padding-bottom:0.45em;position:relative}
+.article-body h2::before{content:'CH ' counter(section,decimal-leading-zero);display:block;font-size:0.52em;font-weight:500;color:#8c8880;letter-spacing:0.15em;font-family:'SF Mono',Consolas,monospace;margin-bottom:0.4em}
+.article-body h2::after{content:'';position:absolute;left:0;bottom:0;width:2.2em;height:2px;background:#8c8880}
+.article-body h3{font-size:16px;font-weight:600;color:#4a4740;margin:1.4em 0 0.5em;padding-left:1em;position:relative}
+.article-body h3::before{content:'·';position:absolute;left:0;top:0;color:#b0aca4;font-weight:700;font-size:1.2em}
+.article-body p{margin:0 0 1em;text-align:justify}
+.article-body blockquote{margin:1.4em 0;padding:1em 1.4em;border-left:4px solid #b0aca4;background:#f5f2ec;color:#5d5a52;font-style:italic;line-height:1.85;border-radius:0 4px 4px 0}
+.article-body strong,.article-body b{color:#3d3a34;font-weight:700;background:linear-gradient(to top,#e8e4db 35%,transparent 35%)}
+.article-body em,.article-body i{color:#7a7568;font-style:italic}
+.article-body a{color:#6b5e4f;text-decoration:none;border-bottom:1px solid #d4cfc6}
+.article-body code{background:#f3efe8;padding:0.15em 0.45em;border-radius:3px;font-size:0.88em;color:#6b5e4f;font-family:'SF Mono',Consolas,monospace}
+.article-body pre{background:#1e1c18;color:#d4cfc6;padding:1.3em 1.5em;border-radius:6px;overflow-x:auto;margin:1.2em 0;line-height:1.65;font-size:14px}
+.article-body pre code{background:none;padding:0;color:inherit}
+.article-body hr{border:none;height:1px;background:#d4cfc6;margin:2em 0;opacity:0.5}
+.article-body img{max-width:100%;height:auto;border-radius:3px;margin:0.8em 0}
+.article-body table{width:100%;border-collapse:collapse;margin:1em 0;font-size:15px}
+.article-body th,.article-body td{padding:0.65em 0.9em;border:1px solid #e0dcd4}
+.article-body th{background:#f5f2ec;font-weight:600;color:#2d2a26}

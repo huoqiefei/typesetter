@@ -1,0 +1,20 @@
+.article-body{background:#fafdfa;color:#1a2e1a;font-family:'PingFang SC','Noto Sans SC','Microsoft YaHei',-apple-system,sans-serif;line-height:1.88;font-size:15px;padding:48px 36px 56px;counter-reset:section}
+.article-body h1{font-size:25px;font-weight:700;color:#0a1a0a;margin:0 0 0.7em;padding:1.3em 0 0.5em;font-family:'SF Mono',Consolas,monospace}
+.article-body h1::before{content:'$ ';font-size:0.8em;font-weight:400;color:#22c55e;font-family:'SF Mono',Consolas,monospace}
+.article-body h2{counter-increment:section;font-size:19px;font-weight:600;color:#14532d;margin:2em 0 0.5em;font-family:'SF Mono',Consolas,monospace;padding:0.4em 1em;background:#f0fdf4;border-radius:4px;border-left:3px solid #22c55e}
+.article-body h2::before{content:'> task-' counter(section,decimal-leading-zero);display:block;font-size:0.55em;font-weight:400;color:#4ade80;letter-spacing:0.06em;margin-bottom:0.3em}
+.article-body h3{font-size:16px;font-weight:600;color:#166534;margin:1.3em 0 0.5em;font-family:'SF Mono',Consolas,monospace;padding-left:1.2em;position:relative}
+.article-body h3::before{content:'>>';position:absolute;left:0;top:0;color:#4ade80;font-size:0.75em;font-weight:700}
+.article-body p{margin:0 0 0.95em;text-align:justify}
+.article-body blockquote{margin:1.3em 0;padding:1em 1.3em;border-left:3px solid #22c55e;background:#f0fdf4;color:#14532d;line-height:1.85;border-radius:0 6px 6px 0;font-family:'SF Mono',Consolas,monospace;font-size:0.93em}
+.article-body strong,.article-body b{font-weight:700;color:#052e16}
+.article-body em,.article-body i{color:#22c55e;font-style:normal}
+.article-body a{color:#16a34a;text-decoration:none;border-bottom:1px dashed #86efac}
+.article-body code{background:#f0fdf4;padding:0.2em 0.5em;border-radius:3px;font-size:0.87em;color:#15803d;font-family:'SF Mono',Consolas,monospace;font-weight:500}
+.article-body pre{background:#052e16;color:#86efac;padding:1.3em 1.5em;border-radius:6px;overflow-x:auto;margin:1.2em 0;line-height:1.65;font-size:13.5px;border:1px solid #14532d}
+.article-body pre code{background:none;padding:0;color:inherit;font-weight:400}
+.article-body hr{border:none;height:1px;background:linear-gradient(to right,transparent,#86efac,transparent);margin:2em 0}
+.article-body img{max-width:100%;height:auto;border-radius:4px;margin:0.8em 0}
+.article-body table{width:100%;border-collapse:collapse;margin:1em 0;font-size:14px;font-family:'SF Mono',Consolas,monospace}
+.article-body th,.article-body td{padding:0.6em 0.9em;border:1px solid #dcfce7}
+.article-body th{background:#f0fdf4;font-weight:600;color:#052e16;font-size:0.85em}

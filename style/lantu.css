@@ -1,0 +1,20 @@
+.article-body{background:#fafbfe;color:#2d3748;font-family:'PingFang SC','Noto Sans SC','Microsoft YaHei',-apple-system,sans-serif;line-height:1.88;font-size:15px;padding:48px 38px 56px;counter-reset:section}
+.article-body h1{font-size:26px;font-weight:700;color:#1a1a2e;margin:0 0 0.7em;padding:1.3em 0 0.55em}
+.article-body h1::before{content:'';display:block;width:2.5em;height:3px;background:linear-gradient(90deg,#6366f1,#818cf8,#6366f1);margin-bottom:0.65em;border-radius:2px}
+.article-body h2{counter-increment:section;font-size:19px;font-weight:600;color:#1e1b4b;margin:2em 0 0.5em;line-height:1.45;padding:0.5em 0;border-top:1px solid #e0e7ff;border-bottom:1px solid #e0e7ff}
+.article-body h2::before{content:'§ ' counter(section);display:block;font-size:0.55em;font-weight:500;color:#818cf8;letter-spacing:0.1em;font-family:'SF Mono',Consolas,monospace;margin-bottom:0.35em}
+.article-body h3{font-size:16px;font-weight:600;color:#3730a3;margin:1.3em 0 0.5em;padding-left:0.8em;position:relative}
+.article-body h3::before{content:'▸';position:absolute;left:0;top:0;color:#a5b4fc;font-size:0.85em}
+.article-body p{margin:0 0 0.95em;text-align:justify}
+.article-body blockquote{margin:1.3em 0;padding:1em 1.3em;border:1px solid #e0e7ff;border-radius:8px;background:linear-gradient(135deg,#eef2ff,#fafbfe);color:#4338ca;line-height:1.8;font-size:0.94em}
+.article-body strong,.article-body b{font-weight:700;color:#1e1b4b}
+.article-body em,.article-body i{color:#6366f1;font-style:normal}
+.article-body a{color:#4f46e5;text-decoration:none;border-bottom:1px solid #c7d2fe}
+.article-body code{background:#eef2ff;padding:0.2em 0.55em;border-radius:4px;font-size:0.87em;color:#4f46e5;font-family:'SF Mono',Consolas,monospace;font-weight:500}
+.article-body pre{background:#1e1b4b;color:#c7d2fe;padding:1.3em 1.5em;border-radius:8px;overflow-x:auto;margin:1.2em 0;line-height:1.65;font-size:13.5px}
+.article-body pre code{background:none;padding:0;color:inherit;font-weight:400}
+.article-body hr{border:none;height:1px;background:linear-gradient(to right,transparent,#c7d2fe,transparent);margin:2em 0}
+.article-body img{max-width:100%;height:auto;border-radius:6px;margin:0.8em 0}
+.article-body table{width:100%;border-collapse:collapse;margin:1em 0;font-size:14px;border-radius:8px;overflow:hidden}
+.article-body th,.article-body td{padding:0.7em 1em;border:1px solid #e0e7ff}
+.article-body th{background:#eef2ff;font-weight:600;color:#3730a3;font-size:0.85em;text-transform:uppercase;letter-spacing:0.04em}

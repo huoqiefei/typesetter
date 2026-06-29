@@ -1,0 +1,22 @@
+.article-body{background:#f8faf6;color:#2e3533;font-family:'PingFang SC','Noto Sans SC','Microsoft YaHei',-apple-system,sans-serif;line-height:1.9;font-size:15px;padding:42px 36px 50px;letter-spacing:0.02em;counter-reset:section}
+.article-body h1{font-size:26px;font-weight:600;color:#1a2e1f;text-align:center;margin:0 0 0.7em;padding:1.4em 0 0.55em;line-height:1.35}
+.article-body h1::before{content:'~  ~  ~';display:block;font-size:0.45em;font-weight:400;color:#8cb895;letter-spacing:0.2em;font-family:Georgia,serif;margin-bottom:0.7em}
+.article-body h1::after{content:'';display:block;width:3em;height:1px;background:linear-gradient(to right,transparent,#8cb895,transparent);margin:0.6em auto 0}
+.article-body h2{counter-increment:section;font-size:19px;font-weight:600;color:#234e2e;margin:2em 0 0.5em;padding-left:12px;border-left:3px solid #6fa87a;line-height:1.45}
+.article-body h2::before{content:'0' counter(section);display:block;font-size:0.55em;font-weight:500;color:#6fa87a;letter-spacing:0.1em;font-family:'SF Mono',Consolas,monospace;margin-bottom:0.3em}
+.article-body h3{font-size:16px;font-weight:600;color:#3d6045;margin:1.3em 0 0.4em}
+.article-body p{margin:0 0 0.95em;text-align:justify}
+.article-body blockquote{margin:1.3em 0;padding:0.9em 1.2em;border-left:3px solid #8cb895;background:#f0f7f2;color:#4a6852;line-height:1.85;border-radius:0 6px 6px 0}
+.article-body strong,.article-body b{font-weight:700;color:#1a2e1f}
+.article-body em,.article-body i{color:#5d7a68;font-style:normal;background:linear-gradient(to top,#d4ecd8 40%,transparent 40%)}
+.article-body a{color:#3d7a48;text-decoration:none;border-bottom:1px solid #c8dcc4}
+.article-body li::marker{color:#6fa87a}
+.article-body code{background:#f0f7f2;padding:0.2em 0.5em;border-radius:3px;font-size:0.88em;color:#3d7a48;font-family:'SF Mono',Consolas,monospace}
+.article-body pre{background:#182a1c;color:#c8dfcc;padding:1.3em 1.5em;border-radius:6px;overflow-x:auto;margin:1.2em 0;line-height:1.65;font-size:14px}
+.article-body pre code{background:none;padding:0;color:inherit}
+.article-body hr{border:none;height:1px;background:linear-gradient(to right,transparent,#bcd4c0,transparent);margin:2em 0}
+.article-body img{max-width:100%;height:auto;border-radius:4px;margin:0.8em 0}
+.article-body table{width:100%;border-collapse:collapse;margin:1em 0;font-size:15px}
+.article-body th,.article-body td{padding:0.65em 0.9em;border:1px solid #dce8de}
+.article-body th{background:#f0f7f2;font-weight:600;color:#234e2e}
+.article-body tr:nth-child(even) td{background:#fafdfa}

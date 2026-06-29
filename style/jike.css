@@ -1,0 +1,20 @@
+.article-body{background:#fcfcfc;color:#1e293b;font-family:'PingFang SC','Noto Sans SC','Microsoft YaHei',-apple-system,sans-serif;line-height:1.85;font-size:15px;padding:48px 38px 56px;letter-spacing:0.01em;counter-reset:section}
+.article-body h1{font-size:27px;font-weight:700;color:#0f172a;margin:0 0 0.65em;padding:1.2em 0 0.5em;line-height:1.35}
+.article-body h1::after{content:'';display:block;width:3em;height:3px;background:#3b82f6;margin:0.55em 0 0;border-radius:2px}
+.article-body h2{counter-increment:section;font-size:19px;font-weight:600;color:#1e293b;margin:2em 0 0.5em;line-height:1.45;padding-left:1em;position:relative}
+.article-body h2::before{content:'#' counter(section);position:absolute;left:0;top:0;font-size:0.65em;font-weight:400;color:#94a3b8;font-family:'SF Mono',Consolas,monospace}
+.article-body h3{font-size:16px;font-weight:600;color:#334155;margin:1.3em 0 0.5em}
+.article-body p{margin:0 0 0.95em;text-align:justify}
+.article-body blockquote{margin:1.3em 0;padding:1em 1.3em;border-left:3px solid #3b82f6;background:#eff6ff;color:#334155;line-height:1.8;border-radius:0 6px 6px 0}
+.article-body strong,.article-body b{font-weight:700;color:#0f172a}
+.article-body em,.article-body i{color:#64748b;font-style:normal}
+.article-body a{color:#2563eb;text-decoration:none;border-bottom:1px solid #bfdbfe}
+.article-body li::marker{color:#3b82f6}
+.article-body code{background:#f1f5f9;padding:0.2em 0.55em;border-radius:4px;font-size:0.87em;color:#2563eb;font-family:'SF Mono',Consolas,monospace;font-weight:500}
+.article-body pre{background:#0f172a;color:#e2e8f0;padding:1.3em 1.5em;border-radius:8px;overflow-x:auto;margin:1.2em 0;line-height:1.65;font-size:13.5px;border:1px solid #1e293b}
+.article-body pre code{background:none;padding:0;color:inherit;font-weight:400}
+.article-body hr{border:none;height:1px;background:#e2e8f0;margin:2em 0}
+.article-body img{max-width:100%;height:auto;border-radius:6px;margin:0.8em 0}
+.article-body table{width:100%;border-collapse:collapse;margin:1em 0;font-size:14px}
+.article-body th,.article-body td{padding:0.65em 0.9em;border:1px solid #e2e8f0}
+.article-body th{background:#f8fafc;font-weight:600;color:#0f172a;font-size:0.88em}

@@ -1,0 +1,19 @@
+.article-body{background:#fff;color:#2e353b;font-family:'PingFang SC','Noto Sans SC','Microsoft YaHei',-apple-system,sans-serif;line-height:1.85;font-size:15px;padding:48px 38px 56px;letter-spacing:0.015em;counter-reset:section}
+.article-body h1{font-size:27px;font-weight:300;color:#15191d;margin:0 0 0.7em;padding:1.2em 0 0.5em;line-height:1.35;letter-spacing:-0.02em}
+.article-body h1::after{content:'';display:block;width:2.5em;height:1px;background:#c0cdd8;margin:0.5em 0 0}
+.article-body h2{counter-increment:section;font-size:19px;font-weight:500;color:#1e2429;margin:2.2em 0 0.55em;line-height:1.45;padding-top:0.8em}
+.article-body h2::before{content:'0' counter(section);display:block;font-size:0.65em;font-weight:300;color:#94a8b8;letter-spacing:0.08em;font-family:'SF Mono',Consolas,monospace;margin-bottom:0.35em}
+.article-body h3{font-size:16px;font-weight:500;color:#3d4852;margin:1.3em 0 0.5em}
+.article-body p{margin:0 0 0.95em;text-align:justify}
+.article-body blockquote{margin:1.3em 0;padding:1em 1.3em;border:1px solid #e8edf2;border-radius:8px;background:#f8fafc;color:#5d6873;font-size:0.93em;line-height:1.8}
+.article-body strong,.article-body b{font-weight:600;color:#0d1117}
+.article-body em,.article-body i{color:#5d6d7e;font-style:normal;background:linear-gradient(to top,#edf2f7 40%,transparent 40%)}
+.article-body a{color:#2563a0;text-decoration:none;border-bottom:1px solid #d0dfee}
+.article-body code{background:#f0f4f8;padding:0.2em 0.5em;border-radius:4px;font-size:0.88em;color:#31648a;font-family:'SF Mono',Consolas,monospace}
+.article-body pre{background:#1a1e24;color:#c8d6e5;padding:1.3em 1.5em;border-radius:8px;overflow-x:auto;margin:1.2em 0;line-height:1.65;font-size:14px}
+.article-body pre code{background:none;padding:0;color:inherit}
+.article-body hr{border:none;height:1px;background:#e8edf2;margin:2em 0}
+.article-body img{max-width:100%;height:auto;border-radius:6px;margin:0.8em 0}
+.article-body table{width:100%;border-collapse:collapse;margin:1em 0;font-size:14px}
+.article-body th,.article-body td{padding:0.65em 0.9em;border-bottom:1px solid #e8edf2}
+.article-body th{font-weight:500;color:#54697e;font-size:0.85em;text-transform:uppercase;letter-spacing:0.05em;border-bottom:2px solid #d0dbe6}
