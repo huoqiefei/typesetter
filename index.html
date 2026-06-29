@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Typesetter · 公众号文章排版工具</title>
+<script src="https://cdn.jsdelivr.net/npm/marked@11.2.0/marked.min.js"></script>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<style>
+:root {
+  --bg: #faf9f6; --surface: #fff; --border: #e8e5df;
+  --text: #1a1a18; --text2: #6b6860; --text3: #9e9a90;
+  --accent: #d97757; --accent-h: #c56545; --code: #f3f1ec;
+  --mono: 'SF Mono','Cascadia Code',Consolas,monospace;
+  --sans: 'PingFang SC','Noto Sans SC','Microsoft YaHei',system-ui,sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:15px;-webkit-font-smoothing:antialiased}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);height:100dvh;overflow:hidden}
+#root{height:100dvh;display:flex;flex-direction:column}
+
+/* Header */
+.header{flex-shrink:0;display:flex;align-items:center;gap:1rem;padding:0 2rem;height:56px;background:var(--surface);border-bottom:1px solid var(--border)}
+.header .dot{width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.header .title{font-weight:700;font-size:1.05rem;letter-spacing:-0.01em}
+.header .badge{font-size:0.75rem;color:var(--text3);background:var(--code);padding:0.2rem 0.6rem;border-radius:4px;font-family:var(--mono)}
+.header .spacer{flex:1}
+
+/* Main grid: sidebar | editor | preview */
+.main{flex:1;display:grid;grid-template-columns:auto 1fr 1fr;overflow:hidden}
+
+/* Sidebar */
+.sidebar{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;width:200px;flex-shrink:0;transition:width 0.25s ease;overflow:hidden}
+.sidebar.collapsed{width:44px}
+.sidebar-toggle{width:100%;border:none;background:transparent;cursor:pointer;padding:0.75rem 0;display:flex;align-items:center;justify-content:center;color:var(--text3);border-bottom:1px solid var(--border);flex-shrink:0;font-family:var(--sans);font-size:0.85rem;transition:color 0.15s}
+.sidebar-toggle:hover{color:var(--accent);background:var(--code)}
+.sidebar-toggle svg{width:16px;height:16px}
+.sidebar-toggle .lbl{display:none;font-size:0.75rem;font-weight:600;margin-left:0.5rem;white-space:nowrap}
+.sidebar:not(.collapsed) .sidebar-toggle .lbl{display:inline}
+.sidebar-list{flex:1;overflow-y:auto;padding:0.3rem 0}
+.sidebar-item{display:flex;align-items:center;gap:0.6rem;padding:0.55rem 0.75rem;cursor:pointer;border:none;background:none;font-family:var(--sans);font-size:0.82rem;color:var(--text2);text-align:left;width:100%;position:relative;transition:background 0.12s}
+.sidebar.collapsed .sidebar-item{padding:0.55rem 0;justify-content:center}
+.sidebar-item:hover{background:var(--code)}
+.sidebar-item.active{background:#fdf0ea;color:var(--text);font-weight:600}
+.sidebar-item.active::after{content:'';position:absolute;right:0;top:12px;bottom:12px;width:2px;background:var(--accent);border-radius:1px}
+.sidebar.collapsed .sidebar-item.active::after{right:0;width:3px}
+.s-item-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;border:1.5px solid rgba(0,0,0,0.08)}
+.s-item-info{display:flex;flex-direction:column;min-width:0}
+.sidebar.collapsed .s-item-info{display:none}
+.s-item-name{font-size:0.82rem;line-height:1.3}
+.s-item-desc{font-size:0.68rem;color:var(--text3);font-weight:400;line-height:1.3;margin-top:1px}
+.sidebar-item.active .s-item-desc{color:var(--text2)}
+
+/* Panel */
+.panel{display:flex;flex-direction:column;overflow:hidden}
+.panel-left{border-right:1px solid var(--border)}
+.panel-h{flex-shrink:0;display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface)}
+.panel-h label{font-size:0.85rem;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.05em}
+
+/* Editor */
+.editor{flex:1;overflow-y:auto;padding:1.25rem;border:none;outline:none;resize:none;font-family:var(--mono);font-size:0.85rem;line-height:1.7;color:var(--text);background:var(--surface);tab-size:2;width:100%}
+.editor::placeholder{color:var(--text3)}
+
+/* Preview */
+.preview-wrap{flex:1;overflow-y:auto;background:var(--code);display:flex;justify-content:center;align-items:flex-start;padding:2rem 1.5rem 3rem}
+.preview-phone{width:100%;max-width:680px;background:var(--surface);border-radius:2px;box-shadow:0 4px 24px rgba(0,0,0,0.06);min-height:200px;overflow:hidden}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:0.4rem;border:none;border-radius:6px;padding:0.55rem 1rem;font-size:0.82rem;font-weight:600;cursor:pointer;font-family:var(--sans);white-space:nowrap;transition:all 0.15s}
+.btn svg{width:14px;height:14px;flex-shrink:0}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent-h)}
+.btn-secondary{background:var(--code);color:var(--text);border:1px solid var(--border)}
+.btn-secondary:hover{border-color:#c4bfb4}
+.btn-sm{padding:0.35rem 0.65rem;font-size:0.72rem;color:var(--text3);background:transparent}
+.btn-sm:hover{color:var(--text2);background:var(--code)}
+.btn-sm.active{color:var(--accent)}
+.btn-sm svg{width:13px;height:13px}
+.action-bar{flex-shrink:0;display:flex;gap:0.5rem;padding:0.75rem 1.25rem;border-top:1px solid var(--border);background:var(--surface)}
+
+/* Badge */
+.tag{display:inline-flex;align-items:center;gap:0.35rem;font-size:0.75rem;padding:0.15rem 0.5rem;border-radius:10px;font-weight:600}
+.tag.ok{background:#e8f5e9;color:#3d6b3e}
+.tag.info{font-weight:400;background:var(--code);color:var(--text2)}
+.dot{width:6px;height:6px;border-radius:50%;display:inline-block}
+.dot.g{background:#5d8a5e}
+
+/* Toast */
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(8px);background:var(--surface);border:1px solid var(--border);padding:0.6rem 1rem;border-radius:8px;font-size:0.8rem;font-weight:600;color:#5d8a5e;box-shadow:0 4px 12px rgba(0,0,0,0.08);opacity:0;transition:all 0.25s;pointer-events:none;z-index:1000}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* Responsive */
+@media(max-width:860px){
+  .main{grid-template-columns:1fr;grid-template-rows:1fr 1fr}
+  .sidebar.collapsed{width:0;border:none;overflow:hidden}
+  .sidebar{position:absolute;left:0;top:56px;bottom:0;z-index:50;box-shadow:4px 0 16px rgba(0,0,0,0.1)}
+  .panel-left{border-right:none;border-bottom:1px solid var(--border)}
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<input type="file" accept=".css" style="display:none" id="cssFileInput">
+<div class="toast" id="toast"></div>
+
+<script>
+const { useState, useRef, useEffect, useCallback, useMemo } = React;
+
+// ═══════════════════════════════════════════════
+//  THEMES
+// ═══════════════════════════════════════════════
+const THEMES = [
+  {id:'sujian',name:'素笺',color:'#c9a34a',desc:'纸笺质感 · 温润日常'},
+  {id:'moyan',name:'墨砚',color:'#5d5b56',desc:'文人气韵 · 深邃克制'},
+  {id:'shuangbai',name:'霜白',color:'#7a8b9e',desc:'冷感留白 · 理性纯净'},
+  {id:'songfeng',name:'松风',color:'#5d7a68',desc:'山林清气 · 自然呼吸'},
+  {id:'wanzhao',name:'晚照',color:'#c97d46',desc:'暮色温柔 · 暖意流淌'},
+  {id:'qinglan',name:'青岚',color:'#5b7d8c',desc:'山间薄雾 · 蓝灰诗意'},
+  {id:'jike',name:'极客',color:'#3b82f6',desc:'文档气质 · 结构清晰'},
+  {id:'lantu',name:'蓝图',color:'#6366f1',desc:'架构设计 · 冷静克制'},
+  {id:'zhongduan',name:'终端',color:'#22c55e',desc:'命令行风 · 极客专属'},
+  {id:'xingtu',name:'星图',color:'#0ea5e9',desc:'数据洞察 · 科技分析'},
+];
+
+// Theme CSS cache (loaded dynamically from style/ directory)
+const THEME_CSS = {};
+
+// ═══════════════════════════════════════════════
+//  DEFAULT MARKDOWN CONTENT
+// ═══════════════════════════════════════════════
+const DEFAULT_MD = `# 好的排版，是内容的第一张面孔
+
+## 为什么排版值得你认真对待
+
+在信息过载的时代，读者的注意力是最稀缺的资源。**一篇排版精致的文章**，能在读者点击进来的三秒内建立信任——这种感受会转化为阅读的耐心，进而转化为对内容本身的认可。
+
+> "排版就像空气中的氧气——好的时候你完全不会注意到它，但一旦糟糕，每一口呼吸都会提醒你它的存在。"
+
+相反，拥挤的段落、刺眼的颜色、忽大忽小的字号，会让再好的内容也变得*难以消化*。
+
+## 公众号排版的核心原则
+
+### 呼吸感
+
+公众号文章在手机屏幕上宽度仅约 **375px**，每一行字数有限。如果段落之间没有足够留白，文字会形成视觉高墙。
+
+### 层次感
+
+一篇好文章如同*奏鸣曲*——有呈示部、展开部、再现部。在排版中，这种层次通过标题层级、引用块、加粗引导、列表组织来实现。
+
+### 一致性
+
+同篇文章中，同级标题、正文字号、引用装饰应保持统一。**一致性带来专业感**，专业感带来信任。
+
+## Typesetter 使用指南
+
+| 功能 | 操作方式 | 说明 |
+|------|---------|------|
+| 切换主题 | 点击左侧侧边栏 | 10 款精选主题，即时预览 |
+| 同步滚动 | 点击预览区顶部按钮 | 编辑器和预览同步滚动 |
+| 复制排版 | 点击「复制排版」按钮 | 自动转为内联样式，可直接粘贴到公众号编辑器 |
+
+### 支持标准 Markdown 语法
+
+编辑器兼容 GFM（GitHub Flavored Markdown）规范：
+
+\`\`\`javascript
+// 代码块示例
+const greeting = "你好，世界";
+
+function welcome(reader) {
+  return \`欢迎 \${reader} — 祝写作愉快\`;
+}
+
+console.log(welcome("朋友"));
+\`\`\`
+
+---
+
+*选好主题，写好内容，点击「复制排版」，粘贴到公众号编辑器即可发布。*
+`;
+
+// ═══════════════════════════════════════════════
+//  REACT COMPONENTS
+// ═══════════════════════════════════════════════
+
+// ── Sidebar ──────────────────────────────────
+function Sidebar({ currentTheme, themes, onThemeSelect, collapsed, onToggle }) {
+  return React.createElement('aside', { className: 'sidebar' + (collapsed ? ' collapsed' : '') },
+    React.createElement('button', { className: 'sidebar-toggle', onClick: onToggle },
+      React.createElement('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2.5 },
+        React.createElement('line', { x1: 3, y1: 6, x2: 21, y2: 6 }),
+        React.createElement('line', { x1: 3, y1: 12, x2: 21, y2: 12 }),
+        React.createElement('line', { x1: 3, y1: 18, x2: 21, y2: 18 })
+      ),
+      React.createElement('span', { className: 'lbl' }, '主题')
+    ),
+    React.createElement('div', { className: 'sidebar-list' },
+      themes.map(t =>
+        React.createElement('button', {
+          key: t.id,
+          className: 'sidebar-item' + (t.id === currentTheme ? ' active' : ''),
+          onClick: () => onThemeSelect(t.id)
+        },
+          React.createElement('span', { className: 's-item-dot', style: { background: t.color } }),
+          React.createElement('span', { className: 's-item-info' },
+            React.createElement('span', { className: 's-item-name' }, t.name),
+            React.createElement('span', { className: 's-item-desc' }, t.desc)
+          )
+        )
+      )
+    )
+  );
+}
+
+// ── Preview Panel ────────────────────────────
+function PreviewPanel({ html, css, themeName, syncEnabled, onToggleSync, themeBadgeRef, wrapRef }) {
+  const previewRef = useRef(null);
+
+  useEffect(() => {
+    if (previewRef.current) {
+      if (!html) {
+        previewRef.current.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4rem 2rem;text-align:center;color:#9e9a90"><div style="font-size:2.2rem;margin-bottom:0.75rem;opacity:0.5">&#9998;</div><p style="font-size:0.85rem">在左侧编辑器输入 Markdown，<br>这里将实时渲染公众号效果</p></div>';
+      } else {
+        previewRef.current.innerHTML = '<style>' + css + '</style><section class="article-body">' + html + '</section>';
+      }
+    }
+  }, [html, css]);
+
+  return React.createElement('div', { className: 'panel' },
+    React.createElement('div', { className: 'panel-h' },
+      React.createElement('label', null, '公众号预览 · 680px'),
+      React.createElement('span', { style: { flex: 1 } }),
+      React.createElement('button', {
+        className: 'btn btn-sm' + (syncEnabled ? ' active' : ''),
+        onClick: onToggleSync,
+        title: syncEnabled ? '同步滚动中' : '独立滚动'
+      },
+        React.createElement('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2.5 },
+          React.createElement('polyline', { points: '17 1 21 5 17 9' }),
+          React.createElement('path', { d: 'M3 11V9a4 4 0 014-4h14' }),
+          React.createElement('polyline', { points: '7 23 3 19 7 15' }),
+          React.createElement('path', { d: 'M21 13v2a4 4 0 01-4 4H3' })
+        ),
+        syncEnabled ? '同步' : '独立'
+      ),
+      React.createElement('span', { ref: themeBadgeRef, className: 'tag info' }, themeName)
+    ),
+    React.createElement('div', { className: 'preview-wrap', ref: wrapRef },
+      React.createElement('div', { className: 'preview-phone', ref: previewRef })
+    )
+  );
+}
+
+// ── App ──────────────────────────────────────
+function App() {
+  const [md, setMd] = useState(DEFAULT_MD);
+  const [themeId, setThemeId] = useState('sujian');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
+  const [syncEnabled, setSyncEnabled] = useState(true);
+  const [toastMsg, setToastMsg] = useState('');
+  const [toastVisible, setToastVisible] = useState(false);
+
+  const editorRef = useRef(null);
+  const previewWrapRef = useRef(null);
+  const themeBadgeRef = useRef(null);
+  const toastTimerRef = useRef(null);
+
+  const showToast = useCallback((msg) => {
+    setToastMsg(msg);
+    setToastVisible(true);
+    clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = setTimeout(() => setToastVisible(false), 2200);
+  }, []);
+
+  // HTML rendering
+  const renderedHTML = useMemo(() => {
+    if (!md.trim()) return '';
+    return marked.parse(md);
+  }, [md]);
+
+  const [currentCSS, setCurrentCSS] = useState('');
+
+  // Fetch CSS dynamically from the style folder
+  useEffect(() => {
+    if (THEME_CSS[themeId]) {
+      setCurrentCSS(THEME_CSS[themeId]);
+    } else {
+      fetch(`style/${themeId}.css`)
+        .then(res => {
+          if (!res.ok) throw new Error('Network response was not ok');
+          return res.text();
+        })
+        .then(css => {
+          THEME_CSS[themeId] = css;
+          setCurrentCSS(css);
+        })
+        .catch(err => {
+          console.error(`Failed to load style/${themeId}.css:`, err);
+          showToast('无法加载预置样式文件');
+        });
+    }
+  }, [themeId, showToast]);
+  const currentTheme = useMemo(() => THEMES.find(t => t.id === themeId), [themeId]);
+
+  // Scroll sync — timeout-based lock pattern (fixes keyboard scroll & infinite loops)
+  useEffect(() => {
+    if (!syncEnabled) return;
+    const editor = editorRef.current;
+    const preview = previewWrapRef.current;
+    if (!editor || !preview) return;
+
+    let scrollingRef = 'none'; // 'editor' | 'preview' | 'none'
+    let clearTimer = null;
+
+    const onEditorScroll = () => {
+      if (scrollingRef === 'preview') return;
+      scrollingRef = 'editor';
+      
+      const m = editor.scrollHeight - editor.clientHeight;
+      if (m > 0) {
+        const r = editor.scrollTop / m;
+        const n = preview.scrollHeight - preview.clientHeight;
+        if (n > 0) preview.scrollTop = r * n;
+      }
+      
+      clearTimeout(clearTimer);
+      clearTimer = setTimeout(() => { scrollingRef = 'none'; }, 50);
+    };
+
+    const onPreviewScroll = () => {
+      if (scrollingRef === 'editor') return;
+      scrollingRef = 'preview';
+
+      const m = preview.scrollHeight - preview.clientHeight;
+      if (m > 0) {
+        const r = preview.scrollTop / m;
+        const n = editor.scrollHeight - editor.clientHeight;
+        if (n > 0) editor.scrollTop = r * n;
+      }
+
+      clearTimeout(clearTimer);
+      clearTimer = setTimeout(() => { scrollingRef = 'none'; }, 50);
+    };
+
+    editor.addEventListener('scroll', onEditorScroll, { passive: true });
+    preview.addEventListener('scroll', onPreviewScroll, { passive: true });
+    return () => {
+      clearTimeout(clearTimer);
+      editor.removeEventListener('scroll', onEditorScroll);
+      preview.removeEventListener('scroll', onPreviewScroll);
+    };
+  }, [syncEnabled]);
+
+  // Update theme badge
+  useEffect(() => {
+    if (themeBadgeRef.current) {
+      themeBadgeRef.current.textContent = currentTheme?.name || '';
+    }
+  }, [themeId, currentTheme]);
+
+  // Copy with inline styles — CSS rule-based inlining (like doocs/md juice approach)
+  const handleCopy = useCallback(async () => {
+    if (!md.trim()) { showToast('请先输入 Markdown 内容'); return; }
+
+    const article = document.querySelector('.article-body');
+    if (!article) { showToast('预览未就绪'); return; }
+
+    // ---- CSS rule parser (supports nested parentheses in values) ----
+    const parseCSS = (cssText) => {
+      const rules = [];
+      let clean = cssText.replace(/\/\*[\s\S]*?\*\//g, '');
+      const blockRe = /([^{}]+)\{([^{}]*)\}/g;
+      let m;
+      while ((m = blockRe.exec(clean)) !== null) {
+        const rawSel = m[1].trim();
+        const body = m[2].trim();
+        if (!rawSel || !body) continue;
+        const props = {};
+        // Parse properties: handle nested parens in values like counter(), linear-gradient()
+        let remaining = body;
+        while (remaining.length > 0) {
+          remaining = remaining.trimStart();
+          if (!remaining) break;
+          const colonIdx = remaining.indexOf(':');
+          if (colonIdx === -1) break;
+          const propName = remaining.substring(0, colonIdx).trim();
+          remaining = remaining.substring(colonIdx + 1).trimStart();
+          let value = '', depth = 0, inStr = false, strChar = '';
+          let i = 0;
+          for (; i < remaining.length; i++) {
+            const ch = remaining[i];
+            if (inStr) { value += ch; if (ch === strChar) inStr = false; continue; }
+            if (ch === "'" || ch === '"') { inStr = true; strChar = ch; value += ch; continue; }
+            if (ch === '(') { depth++; value += ch; continue; }
+            if (ch === ')') { depth--; value += ch; continue; }
+            if (ch === ';' && depth === 0) { i++; break; }
+            value += ch;
+          }
+          remaining = remaining.substring(i);
+          if (propName && value.trim()) props[propName.trim()] = value.trim();
+        }
+        rawSel.split(',').forEach(s => {
+          s = s.trim();
+          if (!s || !s.startsWith('.article-body')) return;
+          const localSel = s.replace(/^\.article-body\s*/, '').trim() || '&';
+          rules.push({ selector: localSel, properties: { ...props }, raw: s.trim() });
+        });
+      }
+      return rules;
+    };
+
+    // ---- Counter computation (pre-compute CSS counter values for the DOM tree) ----
+    const computeCounters = (clone) => {
+      const counters = {};
+      const walk = (node) => {
+        if (node.nodeType !== 1) return;
+        const resetVal = node.style.getPropertyValue('counter-reset');
+        if (resetVal && resetVal !== 'none') {
+          const parts = resetVal.trim().split(/\s+/);
+          for (let i = 0; i < parts.length; i++) {
+            const name = parts[i];
+            if (name === 'none') continue;
+            const next = parts[i + 1];
+            if (next && /^-?\d+$/.test(next)) { counters[name] = parseInt(next); i++; }
+            else { counters[name] = 0; }
+          }
+          node.style.removeProperty('counter-reset');
+        }
+        const incVal = node.style.getPropertyValue('counter-increment');
+        if (incVal && incVal !== 'none') {
+          const parts = incVal.trim().split(/\s+/);
+          for (let i = 0; i < parts.length; i++) {
+            const name = parts[i];
+            if (name === 'none') continue;
+            const next = parts[i + 1];
+            if (next && /^-?\d+$/.test(next)) { counters[name] = (counters[name] || 0) + parseInt(next); i++; }
+            else { counters[name] = (counters[name] || 0) + 1; }
+          }
+          node.style.removeProperty('counter-increment');
+        }
+        node._counters = { ...counters };
+        for (const child of node.childNodes) walk(child);
+      };
+      walk(clone);
+    };
+
+    // ---- Format counter value ----
+    const formatCounter = (value, format) => {
+      if (format === 'decimal-leading-zero') return value < 10 ? '0' + value : '' + value;
+      return '' + value;
+    };
+
+    // ---- Resolve CSS content value (handles quoted strings + counter() functions) ----
+    const resolveContent = (contentValue, el) => {
+      let result = '', rem = contentValue.trim();
+      while (rem.length > 0) {
+        const strMatch = rem.match(/^(['"])((?:\\.|(?!\1).)*)\1/);
+        if (strMatch) {
+          result += strMatch[2].replace(/\\(.)/g, '$1');
+          rem = rem.substring(strMatch[0].length).trimStart();
+          continue;
+        }
+        const counterMatch = rem.match(/^counter\(\s*([a-zA-Z_-][a-zA-Z0-9_-]*)\s*(?:,\s*([a-zA-Z_-][a-zA-Z0-9_-]*))?\s*\)/);
+        if (counterMatch) {
+          const name = counterMatch[1], format = counterMatch[2] || 'decimal';
+          const value = (el._counters && el._counters[name]) || 0;
+          result += formatCounter(value, format);
+          rem = rem.substring(counterMatch[0].length).trimStart();
+          continue;
+        }
+        if (/^\s/.test(rem)) { rem = rem.trimStart(); continue; }
+        result += rem[0]; rem = rem.substring(1);
+      }
+      return result;
+    };
+
+    // ---- Apply CSS rules as inline styles to a cloned DOM ----
+    const inlineStyles = (clone, cssText) => {
+      const rules = parseCSS(cssText);
+      const normal = rules.filter(r => !r.raw.includes('::'));
+      const pseudoBefore = rules.filter(r => r.raw.includes('::before'));
+      const pseudoAfter  = rules.filter(r => r.raw.includes('::after'));
+
+      // Apply normal rules
+      for (const rule of normal) {
+        if (rule.selector === '&') {
+          // :root-like: .article-body itself
+          for (const [p, v] of Object.entries(rule.properties)) {
+            clone.style.setProperty(p, v);
+          }
+          continue;
+        }
+        try {
+          const els = clone.querySelectorAll(rule.selector);
+          for (const el of els) {
+            for (const [p, v] of Object.entries(rule.properties)) {
+              // Do NOT override existing inline styles set by higher-priority rules
+              if (!el.style.getPropertyValue(p) || el.style.getPropertyPriority(p) !== 'important') {
+                el.style.setProperty(p, v);
+              }
+            }
+          }
+        } catch (_) { /* skip invalid selectors */ }
+      }
+
+      // Compute counters before creating pseudo-elements
+      computeCounters(clone);
+
+      // Degrade -webkit-background-clip:text (unsupported by WeChat editor)
+      try {
+        const clipEls = clone.querySelectorAll('*');
+        for (const el of [clone, ...clipEls]) {
+          const clip = el.style.getPropertyValue('-webkit-background-clip') || el.style.getPropertyValue('background-clip');
+          if (clip === 'text') {
+            const bg = el.style.getPropertyValue('background') || el.style.getPropertyValue('background-image') || '';
+            const colorMatch = bg.match(/#[0-9a-fA-F]{3,8}|rgba?\([^)]+\)|hsla?\([^)]+\)/);
+            if (colorMatch) el.style.setProperty('color', colorMatch[0]);
+            el.style.removeProperty('background');
+            el.style.removeProperty('background-image');
+            el.style.removeProperty('-webkit-background-clip');
+            el.style.removeProperty('background-clip');
+            el.style.removeProperty('-webkit-text-fill-color');
+          }
+        }
+      } catch (_) {}
+
+      // Convert ::before/::after pseudo-elements to real <span>
+      const makePseudo = (rule, position) => {
+        try {
+          const sel = rule.raw.replace(/::(?:before|after)/, '').trim();
+          const localSel = sel.replace(/^\.article-body\s*/, '').trim() || '&';
+          const els = localSel === '&' ? [clone] : Array.from(clone.querySelectorAll(localSel));
+          for (const el of els) {
+            const span = document.createElement('section');
+            span.setAttribute('data-ps', position);
+            const hasDisplay = 'display' in rule.properties;
+            for (const [p, v] of Object.entries(rule.properties)) {
+              if (p === 'content') continue;
+              if (p === 'position' && (v === 'absolute' || v === 'relative')) {
+                if (!hasDisplay) span.style.setProperty('display', 'inline-block');
+                continue;
+              }
+              if (p === 'left' || p === 'right' || p === 'top' || p === 'bottom') continue;
+              span.style.setProperty(p, v);
+            }
+            if (!hasDisplay && !('position' in rule.properties)) {
+              span.style.setProperty('display', 'inline');
+            }
+            // Resolve content value (handles quoted strings + counter() functions)
+            const rawContent = rule.properties.content || '';
+            const content = resolveContent(rawContent, el);
+            if (content.length > 0) {
+              span.appendChild(document.createTextNode(content));
+            }
+            if (position === 'before') {
+              el.insertBefore(span, el.firstChild);
+            } else {
+              el.appendChild(span);
+            }
+          }
+        } catch (_) { /* skip */ }
+      };
+
+      for (const rule of pseudoBefore) makePseudo(rule, 'before');
+      for (const rule of pseudoAfter)  makePseudo(rule, 'after');
+
+      // Final fixup: convert -webkit-text-fill-color to color for WeChat compatibility
+      try {
+        const fixEls = [clone, ...clone.querySelectorAll('*')];
+        for (const el of fixEls) {
+          const fillColor = el.style.getPropertyValue('-webkit-text-fill-color');
+          if (fillColor && fillColor !== 'transparent') {
+            if (!el.style.getPropertyValue('color')) el.style.setProperty('color', fillColor);
+            el.style.removeProperty('-webkit-text-fill-color');
+          } else if (fillColor === 'transparent') {
+            el.style.removeProperty('-webkit-text-fill-color');
+          }
+        }
+      } catch (_) {}
+
+      // Inherited-property propagation: explicitly set inherited CSS properties
+      // on every descendant that does not define them itself. WeChat editor strips
+      // the root .article-body wrapper on paste, which breaks the inheritance chain
+      // and causes font-family / color / line-height / font-size / letter-spacing
+      // to be lost. Pushing these values down to each element ensures every block
+      // keeps its full typography even when detached from the root container.
+      const INHERITED_PROPS = [
+        'font-family', 'color', 'line-height', 'font-size',
+        'letter-spacing', 'text-align', 'word-spacing', 'text-indent',
+        'font-weight', 'font-style', 'white-space', 'text-transform'
+      ];
+      const rootInherited = {};
+      for (const p of INHERITED_PROPS) {
+        const v = clone.style.getPropertyValue(p);
+        if (v) rootInherited[p] = v;
+      }
+      if (Object.keys(rootInherited).length) {
+        const descEls = clone.querySelectorAll('*');
+        for (const el of descEls) {
+          for (const [p, v] of Object.entries(rootInherited)) {
+            // Only set when the descendant has not declared this property itself
+            if (!el.style.getPropertyValue(p)) {
+              el.style.setProperty(p, v);
+            }
+          }
+        }
+      }
+    };
+
+    // ---- Serialize clone to clean HTML string (preserves safe attributes) ----
+    const SAFE_ATTRS = ['href', 'src', 'alt', 'title', 'colspan', 'rowspan', 'width', 'height', 'type', 'start', 'target'];
+    const serialize = (el) => {
+      if (el.nodeType === 3) return el.textContent.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      if (el.nodeType !== 1) return '';
+      const tag = el.tagName.toLowerCase();
+      el.removeAttribute('data-ps');
+      const attrs = [];
+      // Inline style
+      const cssMap = [];
+      for (let i = 0; i < el.style.length; i++) {
+        const p = el.style[i];
+        let v = el.style.getPropertyValue(p);
+        if (!v) continue;
+        // CRITICAL: replace " with ' inside style values. CSS allows both
+        // quote styles for font-family names. Without this, a value like
+        // font-family:"Noto Serif SC" would prematurely close the HTML
+        // style="..." attribute, causing every declaration after font-family
+        // (color, line-height, font-size, letter-spacing, ...) to be silently
+        // dropped by the HTML parser — which is exactly the "font styles lost
+        // after pasting into WeChat editor" symptom.
+        v = v.replace(/"/g, "'");
+        cssMap.push(p + ':' + v);
+      }
+      if (cssMap.length) attrs.push('style="' + cssMap.join(';') + '"');
+      // Preserve safe HTML attributes (href, src, alt, etc.)
+      for (const a of SAFE_ATTRS) {
+        const v = el.getAttribute(a);
+        if (v != null) attrs.push(a + '="' + v.replace(/&/g, '&amp;').replace(/"/g, '&quot;') + '"');
+      }
+      const attrStr = attrs.length ? ' ' + attrs.join(' ') : '';
+      // Self-closing tags
+      if (tag === 'br' || tag === 'hr' || tag === 'img') return '<' + tag + attrStr + '>';
+      let inner = '';
+      for (const c of el.childNodes) inner += serialize(c);
+      return '<' + tag + attrStr + '>' + inner + '</' + tag + '>';
+    };
+
+    try {
+      const clone = article.cloneNode(true);
+      inlineStyles(clone, currentCSS);
+      // Serialize child nodes only — do NOT emit the outer .article-body <section>
+      // wrapper. WeChat editor mishandles the root <section> (sometimes rendering
+      // it as literal "<section>" text at the article start), and stripping it
+      // post-paste would also drop any styles still attached to it. Each child
+      // already carries its full inline typography thanks to inherited-property
+      // propagation above, so the wrapper is no longer needed.
+      let inlineHTML = '';
+      for (const child of clone.childNodes) {
+        inlineHTML += serialize(child);
+      }
+
+      // Clipboard API
+      try {
+        const blob = new Blob([inlineHTML], { type: 'text/html' });
+        await navigator.clipboard.write([new ClipboardItem({ 'text/html': blob })]);
+        showToast('已复制！可直接粘贴（Ctrl+V）到公众号编辑器');
+        return;
+      } catch (_) {}
+
+      // Fallback: execCommand
+      const div = document.createElement('div');
+      div.contentEditable = 'true';
+      div.style.cssText = 'position:fixed;left:-9999px;top:0';
+      div.innerHTML = inlineHTML;
+      document.body.appendChild(div);
+      const range = document.createRange();
+      range.selectNodeContents(div);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+      document.execCommand('copy');
+      sel.removeAllRanges();
+      document.body.removeChild(div);
+      showToast('已复制！可直接粘贴（Ctrl+V）到公众号编辑器');
+    } catch (e) {
+      showToast('复制失败：' + e.message);
+      console.error(e);
+    }
+  }, [md, showToast, currentCSS]);
+
+  const handleImportCSS = useCallback(() => {
+    document.getElementById('cssFileInput').click();
+  }, []);
+
+  const handleCSSFile = useCallback((e) => {
+    showToast('自定义 CSS 功能开发中...');
+    e.target.value = '';
+  }, [showToast]);
+
+  // Wire up file input
+  useEffect(() => {
+    const input = document.getElementById('cssFileInput');
+    input.addEventListener('change', handleCSSFile);
+    return () => input.removeEventListener('change', handleCSSFile);
+  }, [handleCSSFile]);
+
+  // Keyboard shortcut
+  useEffect(() => {
+    const handler = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        handleCopy();
+      }
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [handleCopy]);
+
+  return React.createElement('div', { style: { display: 'contents' } },
+    // Header
+    React.createElement('header', { className: 'header' },
+      React.createElement('span', { className: 'dot' }),
+      React.createElement('span', { className: 'title' }, 'Typesetter'),
+      React.createElement('span', { className: 'badge' }, '公众号文章排版工具'),
+      React.createElement('span', { className: 'spacer' }),
+      React.createElement('span', { className: 'badge' }, md.length.toLocaleString() + ' 字符')
+    ),
+    // Main
+    React.createElement('div', { className: 'main' },
+      // Sidebar
+      React.createElement(Sidebar, {
+        currentTheme: themeId,
+        themes: THEMES,
+        onThemeSelect: setThemeId,
+        collapsed: sidebarCollapsed,
+        onToggle: () => setSidebarCollapsed(!sidebarCollapsed)
+      }),
+      // Editor panel
+      React.createElement('div', { className: 'panel panel-left' },
+        React.createElement('div', { className: 'panel-h' },
+          React.createElement('label', null, 'Markdown 编辑器')
+        ),
+        React.createElement('textarea', {
+          ref: editorRef,
+          className: 'editor',
+          value: md,
+          onChange: e => setMd(e.target.value),
+          placeholder: '在此粘贴或编写 Markdown……\n\n支持标题、加粗、列表、引用、代码块、链接、图片',
+          spellCheck: false
+        }),
+        React.createElement('div', { className: 'action-bar' },
+          React.createElement('button', { className: 'btn btn-primary', onClick: handleCopy },
+            React.createElement('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2.5 },
+              React.createElement('rect', { x: 9, y: 9, width: 13, height: 13, rx: 2 }),
+              React.createElement('path', { d: 'M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1' })
+            ),
+            '复制排版'
+          ),
+          React.createElement('button', { className: 'btn btn-secondary', onClick: handleImportCSS },
+            React.createElement('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2.5 },
+              React.createElement('path', { d: 'M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4' }),
+              React.createElement('polyline', { points: '7 10 12 15 17 10' }),
+              React.createElement('line', { x1: 12, y1: 15, x2: 12, y2: 3 })
+            ),
+            '导入 CSS'
+          )
+        )
+      ),
+      // Preview panel
+      React.createElement(PreviewPanel, {
+        html: renderedHTML,
+        css: currentCSS,
+        themeName: currentTheme?.name || '素笺',
+        syncEnabled,
+        onToggleSync: () => setSyncEnabled(!syncEnabled),
+        themeBadgeRef,
+        wrapRef: previewWrapRef
+      })
+    ),
+    // Toast
+    React.createElement('div', { className: 'toast' + (toastVisible ? ' on' : '') }, toastMsg)
+  );
+}
+
+// ═══════════════════════════════════════════════
+//  MOUNT
+// ═══════════════════════════════════════════════
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(React.createElement(App));
+</script>
+</body>
+</html>
